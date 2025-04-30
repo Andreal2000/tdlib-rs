@@ -162,7 +162,9 @@ fn generic_build(lib_path: Option<String>) {
     let mut_lib_path = {
         #[cfg(any(
             all(target_os = "linux", target_arch = "x86_64"),
-            all(target_os = "linux", target_arch = "aarch64")
+            all(target_os = "linux", target_arch = "aarch64"),
+            all(target_os = "freebsd", target_arch = "x86_64"),
+            all(target_os = "freebsd", target_arch = "aarch64")
         ))]
         {
             format!("{}/libtdjson.so.{}", lib_dir, TDLIB_VERSION)

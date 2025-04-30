@@ -77,6 +77,8 @@ fn copy_local_tdlib() {
 /// - Windows x86_64
 /// - MacOS x86_64
 /// - MacOS aarch64
+/// - FreeBSD aarch64
+/// - FreeBSD x86_64
 fn generic_build() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let prefix = format!("{}/tdlib", out_dir);
@@ -85,7 +87,9 @@ fn generic_build() {
     let lib_path = {
         #[cfg(any(
             all(target_os = "linux", target_arch = "x86_64"),
-            all(target_os = "linux", target_arch = "aarch64")
+            all(target_os = "linux", target_arch = "aarch64"),
+            all(target_os = "freebsd", target_arch = "x86_64"),
+            all(target_os = "freebsd", target_arch = "aarch64")
         ))]
         {
             format!("{}/libtdjson.so.{}", lib_dir, TDLIB_VERSION)

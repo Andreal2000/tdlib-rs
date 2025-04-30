@@ -1,0 +1,72 @@
+name: CI FreeBSD
+
+on:
+  push:
+    branches-ignore: [ 'dependabot/**' ]
+    tags-ignore: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+  workflow_run:
+    workflows: [ CD ]
+    types: [ completed ]
+    branches: [ main ]
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  API_HASH: a3406de8d171bb422bb6ddf3bbd800e2
+  API_ID: 94575
+
+jobs:
+  ci:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        feature: [local-tdlib, download-tdlib, pkg-config, docs]
+        arch: [ "", "aarch64" ]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install needed packages
+        uses: vmactions/freebsd-vm@v1.2.0
+        with:
+          arch: ${{ matrix.arch }}
+          envs: 'CARGO_TERM_COLOR RUST_BACKTRACE API_HASH API_ID'
+          usesh: true
+          run: |
+            pkg upgrade -y
+            pkg install -y rust pkgconf
+      - name: Download TDLib
+        if:  matrix.feature == 'local-tdlib' || matrix.feature == 'pkg-config'
+        run: |
+          gh release download --pattern ${{ matrix.arch == 'aarch64' && 'tdlib-*-freebsd-aarch64.zip' || 'tdlib-*-freebsd-x86_64.zip' }}
+          unzip -q *.zip -d .
+      - name: Set pkg-config environment variables
+        if: matrix.feature == 'pkg-config'
+        run: |
+          echo "PKG_CONFIG_PATH=$(pwd)/tdlib/lib/pkgconfig" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$(pwd)/tdlib/lib" >> $GITHUB_ENV
+      - name: Set local-tdlib environment variables
+        if: matrix.feature == 'local-tdlib'
+        run: echo "LOCAL_TDLIB_PATH=$(pwd)/tdlib/" >> $GITHUB_ENV
+      - name: Run cargo build
+        shell: freebsd {0}
+        run: cargo build --verbose --features ${{ matrix.feature }}
+      - name: Run cargo test
+        shell: freebsd {0}
+        run: cargo test --verbose --workspace --exclude tdlib-rs -- --nocapture --test-threads=1
+      - name: Run cargo clippy
+        shell: freebsd {0}
+        run: cargo clippy --all-targets --features ${{ matrix.feature }} -- -D warnings
+      - name: Run cargo fmt
+        shell: freebsd {0}
+        run: cargo fmt --all -- --check
+      - name: Run cargo run
+        if: matrix.feature != 'docs'
+        shell: freebsd {0}
+        run: cargo run --package tdlib-rs --example test_ci --features ${{ matrix.feature }}

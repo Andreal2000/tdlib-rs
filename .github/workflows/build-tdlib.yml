@@ -131,3 +131,48 @@ jobs:
           name: ${{ steps.cache-tdlib-restore.outputs.cache-primary-key }}
           path: ./td/tdlib/
           overwrite: true
+
+  build-freebsd:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ "", "aarch64" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore cache TDLib
+        id: cache-tdlib-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: td/
+          key: tdlib-${{ env.TDLIB_VERSION }}-freebsd-${{ matrix.arch == 'aarch64' && 'aarch64' || 'x86_64' }}
+      - name: Build TDLib
+        uses: vmactions/freebsd-vm@v1.2.0
+        if: steps.cache-tdlib-restore.outputs.cache-hit != 'true'
+        with:
+          arch: ${{ matrix.arch }}
+          envs: 'TDLIB_VERSION TDLIB_COMMIT'
+          usesh: true
+          prepare: |
+            pkg upgrade -y
+            pkg install -y git gperf php83 cmake
+          run: |
+            git clone https://github.com/tdlib/td.git
+            cd td
+            git checkout $TDLIB_COMMIT
+            rm -rf build
+            mkdir build
+            cd build
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib ..
+            cmake --build . --target install
+      - name: Save cache TDLib
+        uses: actions/cache/save@v4
+        if: steps.cache-tdlib-restore.outputs.cache-hit != 'true'
+        with:
+          path: td/
+          key: ${{ steps.cache-tdlib-restore.outputs.cache-primary-key }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.cache-tdlib-restore.outputs.cache-primary-key }}
+          path: ./td/tdlib/
+          overwrite: true
