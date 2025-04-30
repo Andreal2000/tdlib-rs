@@ -56,17 +56,27 @@ jobs:
         run: echo "LOCAL_TDLIB_PATH=$(pwd)/tdlib/" >> $GITHUB_ENV
       - name: Run cargo build
         shell: freebsd {0}
-        run: cargo build --verbose --features ${{ matrix.feature }}
+        run: |
+          cd $GITHUB_WORKSPACE;
+          cargo build --verbose --features ${{ matrix.feature }}
       - name: Run cargo test
         shell: freebsd {0}
-        run: cargo test --verbose --workspace --exclude tdlib-rs -- --nocapture --test-threads=1
+        run: |
+          cd $GITHUB_WORKSPACE;
+          cargo test --verbose --workspace --exclude tdlib-rs -- --nocapture --test-threads=1
       - name: Run cargo clippy
         shell: freebsd {0}
-        run: cargo clippy --all-targets --features ${{ matrix.feature }} -- -D warnings
+        run: |
+          cd $GITHUB_WORKSPACE;
+          cargo clippy --all-targets --features ${{ matrix.feature }} -- -D warnings
       - name: Run cargo fmt
         shell: freebsd {0}
-        run: cargo fmt --all -- --check
+        run: |
+          cd $GITHUB_WORKSPACE;
+          cargo fmt --all -- --check
       - name: Run cargo run
         if: matrix.feature != 'docs'
         shell: freebsd {0}
-        run: cargo run --package tdlib-rs --example test_ci --features ${{ matrix.feature }}
+        run: |
+          cd $GITHUB_WORKSPACE;
+          cargo run --package tdlib-rs --example test_ci --features ${{ matrix.feature }}
