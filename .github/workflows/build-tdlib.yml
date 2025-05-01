@@ -153,7 +153,7 @@ jobs:
           envs: 'TDLIB_VERSION TDLIB_COMMIT'
           usesh: true
           prepare: |
-            pkg upgrade -y
+            pkg update
             pkg install -y git gperf php83 cmake
           run: |
             git clone https://github.com/tdlib/td.git

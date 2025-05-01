@@ -39,12 +39,12 @@ jobs:
           envs: 'CARGO_TERM_COLOR RUST_BACKTRACE API_HASH API_ID'
           usesh: true
           run: |
-            pkg upgrade -y
+            pkg update
             pkg install -y rust pkgconf
       - name: Download TDLib
         if:  matrix.feature == 'local-tdlib' || matrix.feature == 'pkg-config'
         run: |
-          gh release download --pattern ${{ matrix.arch == 'aarch64' && 'tdlib-*-freebsd-aarch64.zip' || 'tdlib-*-freebsd-x86_64.zip' }}
+          gh release download --pattern ${{ matrix.arch == 'aarch64' && 'tdlib-*-linux-aarch64.zip' || 'tdlib-*-linux-x86_64.zip' }}
           unzip -q *.zip -d .
       - name: Set pkg-config environment variables
         if: matrix.feature == 'pkg-config'
