@@ -40,7 +40,7 @@ jobs:
           usesh: true
           run: |
             pkg update
-            pkg install -y rust pkgconf
+            pkg install -y rust pkgconf openssl
       - name: Download TDLib
         if:  matrix.feature == 'local-tdlib' || matrix.feature == 'pkg-config'
         run: |

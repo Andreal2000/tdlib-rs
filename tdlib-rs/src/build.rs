@@ -60,12 +60,17 @@ fn copy_dir_all(
 /// If the OS or architecture is not supported, the function will panic.
 fn download_tdlib() {
     let base_url = "https://github.com/FedericoBruzzone/tdlib-rs/releases/download";
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let target_os_str = match target_os.as_str() {
+        "freebsd" => "linux",
+        other => other,
+    };
     let url = format!(
         "{}/v{}/tdlib-{}-{}-{}.zip",
         base_url,
-        TDLIB_CARGO_PKG_VERSION,
+        env!("CARGO_PKG_VERSION"),
         TDLIB_VERSION,
-        std::env::var("CARGO_CFG_TARGET_OS").unwrap(),
+        target_os_str,
         std::env::var("CARGO_CFG_TARGET_ARCH").unwrap(),
     );
 
