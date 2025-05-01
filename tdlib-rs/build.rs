@@ -126,7 +126,8 @@ fn generic_build() {
 #[cfg(feature = "download-tdlib")]
 fn download_tdlib() {
     let base_url = "https://github.com/FedericoBruzzone/tdlib-rs/releases/download";
-    let target_os = match std::env::var("CARGO_CFG_TARGET_OS").unwrap().as_str() {
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let target_os_str = match target_os.as_str() {
         "freebsd" => "linux",
         other => other,
     };
@@ -135,7 +136,7 @@ fn download_tdlib() {
         base_url,
         env!("CARGO_PKG_VERSION"),
         TDLIB_VERSION,
-        target_os,
+        target_os_str,
         std::env::var("CARGO_CFG_TARGET_ARCH").unwrap(),
     );
     // let target_os = if cfg!(target_os = "windows") {
